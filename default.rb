@@ -47,6 +47,7 @@ file "config/secrets.travis.yml", <<-CODE
 CODE
 
 after_bundle do
+  run "bundle exec spring binstub --all"
   run "rails g foundation:install"
   run "guard init"
 end
