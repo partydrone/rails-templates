@@ -1,14 +1,14 @@
 # Default Rails application
- 
+
 gem "font-awesome-sass"
 gem "foundation-rails"
 gem "git"
- 
+
 gem_group :development do
   gem "rack-livereload"
   gem "rack-mini-profiler"
 end
- 
+
 gem_group :test do
   gem "codeclimate-test-reporter", require: nil
   gem "database_cleaner"
@@ -26,10 +26,21 @@ gem_group :production, :staging do
   gem "unicorn"
 end
 
-environment do
-  %Q{ config.generators do |g|
+application do
+  %{ config.generators do |g|
     g.test_framework :minitest, fixutre: false
   end }
+end
+
+environment :development do
+  <<-CODE
+
+    config.assets.prefix = "/dev-assets"
+
+    # Add Rack::LiveReload to the bottom of the middleware stack with the
+    # default options.
+    config.middleware.use Rack::LiveReload
+  CODE
 end
 
 file ".travis.yml", <<-CODE
@@ -75,4 +86,8 @@ after_bundle do
   run "bundle exec spring binstub --all"
   run "rails g foundation:install"
   run "guard init"
+
+  git :init
+  git add: "."
+  git commit: %{ -m 'Initial commit' }
 end
