@@ -1,12 +1,16 @@
 # Default Rails application
  
+gem "font-awesome-sass"
 gem "foundation-rails"
+gem "git"
  
 gem_group :development do
   gem "rack-livereload"
+  gem "rack-mini-profiler"
 end
  
 gem_group :test do
+  gem "codeclimate-test-reporter", require: nil
   gem "database_cleaner"
   gem "guard-livereload"
   gem "guard-minitest"
@@ -14,17 +18,25 @@ gem_group :test do
   gem "minifacture"
   gem "minitest-rails"
   gem "minitest-rails-capybara"
+  gem "minitest-reporters"
   gem "rake"
+end
+
+gem_group :production, :staging do
+  gem "unicorn"
 end
 
 environment do
   %Q{ config.generators do |g|
-    g.test_framework :minitest, spec: true, fixutre: false
+    g.test_framework :minitest, fixutre: false
   end }
 end
 
 file ".travis.yml", <<-CODE
+  sudo: false
   language: ruby
+  rvm:
+    - 2.2.3
   cache: bundler
   addons:
     postgresql: "9.4"
@@ -32,6 +44,19 @@ file ".travis.yml", <<-CODE
     - psql -c "create database travis_ci_test;" -U postgres
     - cp config/database.travis.yml config/database.yml
     - cp config/secrets.travis.yml config/secrets.yml
+  deploy:
+    provider: opsworks
+    access_key_id: ["AWS_ACCESS_KEY_ID"]
+    secret_access_key:
+      secure: ["AWS_SECRET_ACCESS_KEY"]
+    app-id: ["AWS_APP_ID"]
+    on:
+      repo: ["GITHUB_REPO_PATH"]
+      branch: master
+      rvm: 2.2.3
+  notifications:
+    slack:
+      secure: ["SLACK_TOKEN"]
 CODE
 
 file "config/database.travis.yml", <<-CODE
